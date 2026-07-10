@@ -22,7 +22,7 @@ $(tput setaf 2)This installer was created by $(tput setaf 1)Parkeymon$(tput seta
 "
 
 # Egg version checking, do not touch!
-currentVersion="4.0.0"
+currentVersion="4.0.1"
 latestVersion=$(curl --silent "https://api.github.com/repos/EsserGaming/scpsl-egg/releases/latest" | jq -r .tag_name)
 
 if [ "${currentVersion}" == "${latestVersion}" ]; then
@@ -65,7 +65,7 @@ if [ "${BRANCH_TAG}" == "" ]; then
   echo "$(tput setaf 2)Done.$(tput sgr0)"
 else
   echo "$(tput setaf 4)Installing SCP:SL $(tput bold)on custom branch (output enabled)..$(tput sgr0)" 
-  ./DepotDownloader -app 996560 -depot 996562 -dir /mnt/server -branch ${BRANCH_TAG} -validate # keeping this normal if debugging is needed
+  ./DepotDownloader -app 996560 -depot 996562 -branch ${BRANCH_TAG} -dir /mnt/server -validate # keeping this normal if debugging is needed
 fi
 
 # Exit if /mnt/server doesn't exist
