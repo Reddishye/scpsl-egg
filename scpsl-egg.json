@@ -11,6 +11,7 @@
     "features": [],
     "docker_images": {
         "essergaming\/docker-scpsl": "ghcr.io\/essergaming\/docker-scpsl:master",
+        "reddishye\/docker-scpsl-arm64": "ghcr.io\/reddishye\/docker-scpsl:master",
         "parkeymon\/exiled-scpsl-image": "quay.io\/parkeymon\/exiled-scpsl-image:latest"
     },
     "file_denylist": [],

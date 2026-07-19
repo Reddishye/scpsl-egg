@@ -3,6 +3,15 @@
 #
 # Server Files: /mnt/server
 
+# Architecture detection for ARM64 (Oracle Ampere) support
+ARCH=$(uname -m)
+if [ "$ARCH" = "aarch64" ]; then
+  echo "$(tput setaf 6)Detected ARM64 architecture - enabling Box64 compatibility mode$(tput sgr0)"
+  DD_ARCH="arm64"
+else
+  DD_ARCH="x64"
+fi
+
 echo "
 $(tput setaf 4)  ____________________________       ______________
 $(tput setaf 4) /   _____/\_   ___ \______   \ /\  /   _____/|    |
@@ -42,14 +51,14 @@ $(tput setaf 4)Installation will start in 3 seconds...
   sleep 3
 fi
 
-# Download SteamDepotDownloader and install it.
+# Download SteamDepotDownloader and install it (architecture-aware).
 cd /tmp || { 
   echo "$(tput setaf 1) FAILED TO MOUNT TO /TMP"
   exit 
 }
 mkdir -p /mnt/server/.DepotDownloader
-curl -sSL -o DepotDownloader-linux-x64.zip https://github.com/SteamRE/DepotDownloader/releases/latest/download/DepotDownloader-linux-x64.zip
-unzip -oq DepotDownloader-linux-x64.zip -d /mnt/server/.DepotDownloader
+curl -sSL -o "DepotDownloader-linux-${DD_ARCH}.zip" "https://github.com/SteamRE/DepotDownloader/releases/latest/download/DepotDownloader-linux-${DD_ARCH}.zip"
+unzip -oq "DepotDownloader-linux-${DD_ARCH}.zip" -d /mnt/server/.DepotDownloader
 cd /mnt/server/.DepotDownloader || {
   echo "$(tput setaf 1) FAILED TO MOUNT TO /mnt/server/.DepotDownloader"
   exit
@@ -110,31 +119,82 @@ fi
 
 # EXILED installation
 if [[ "${INSTALL_EXILED}" == "true" ]]; then
-  echo "$(tput setaf 4)Downloading $(tput setaf 1)EXILED $(tput setaf 4)installer."
-  mkdir -p .config/
-  rm Exiled.Installer-Linux >/dev/null 2>&1
-  wget -q https://github.com/ExMod-Team/EXILED/releases/latest/download/Exiled.Installer-Linux
-  chmod +x ./Exiled.Installer-Linux
 
-  if [[ "${EXILED_PRE}" == "true" ]]; then
-    echo "$(tput setaf 4)Installing latest $(tput setaf 1)EXILED $(tput setaf 4)pre-release.."
-    ./Exiled.Installer-Linux -p /mnt/server/ --pre-releases >/dev/null
+  if [ "$ARCH" = "aarch64" ]; then
+    # ARM64 - extract Exiled.tar.gz instead of running x86_64 installer
+    echo "$(tput setaf 4)Installing EXILED via tar.gz (ARM64)...$(tput sgr0)"
 
-  elif [[ "${EXILED_PRE}" == "false" ]]; then
-    echo "$(tput setaf 4)Installing latest $(tput setaf 1)EXILED $(tput setaf 4)release.."
-    ./Exiled.Installer-Linux -p /mnt/server/ --skip-version-select >/dev/null
+    if [ "${EXILED_PRE}" = "true" ]; then
+      local_tag=$(curl -sL "https://api.github.com/repos/ExMod-Team/EXILED/releases" | jq -r '.[0].tag_name')
+      exiled_url="https://github.com/ExMod-Team/EXILED/releases/download/${local_tag}/Exiled.tar.gz"
+    elif [ "${EXILED_PRE}" != "false" ]; then
+      exiled_url="https://github.com/ExMod-Team/EXILED/releases/download/${EXILED_PRE}/Exiled.tar.gz"
+    else
+      exiled_url="https://github.com/ExMod-Team/EXILED/releases/latest/download/Exiled.tar.gz"
+    fi
+
+    tmpdir=$(mktemp -d)
+    wget -q "$exiled_url" -O "$tmpdir/Exiled.tar.gz"
+    tar -xzf "$tmpdir/Exiled.tar.gz" -C "$tmpdir"
+
+    mkdir -p '/mnt/server/.config/SCP Secret Laboratory/LabAPI/plugins/global'
+    mkdir -p '/mnt/server/.config/SCP Secret Laboratory/LabAPI/dependencies/global'
+
+    cp -r "$tmpdir/EXILED/Plugins/"* '/mnt/server/.config/SCP Secret Laboratory/LabAPI/plugins/global/' 2>/dev/null
+    cp -r "$tmpdir/SCP Secret Laboratory/LabAPI/plugins/global/"* '/mnt/server/.config/SCP Secret Laboratory/LabAPI/plugins/global/' 2>/dev/null
+    cp -r "$tmpdir/SCP Secret Laboratory/LabAPI/dependencies/global/"* '/mnt/server/.config/SCP Secret Laboratory/LabAPI/dependencies/global/' 2>/dev/null
+
+    rm -rf "$tmpdir"
+    echo "$(tput setaf 2)EXILED installation via tar.gz complete.$(tput sgr0)"
 
   else
-    echo "$(tput setaf 4)Installing $(tput setaf 1)EXILED$ $(tput setaf 4)version: $(tput bold)$(tput setaf 1)${EXILED_PRE}$(tput sgr0)"
-    ./Exiled.Installer-Linux -p /mnt/server/ --target-version "${EXILED_PRE}" # un-silenced in case debugging is needed
+    # x86_64 - use normal installer
+    echo "$(tput setaf 4)Downloading $(tput setaf 1)EXILED $(tput setaf 4)installer."
+    mkdir -p .config/
+    rm Exiled.Installer-Linux >/dev/null 2>&1
+    wget -q https://github.com/ExMod-Team/EXILED/releases/latest/download/Exiled.Installer-Linux
+    chmod +x ./Exiled.Installer-Linux
 
+    if [[ "${EXILED_PRE}" == "true" ]]; then
+      echo "$(tput setaf 4)Installing latest $(tput setaf 1)EXILED $(tput setaf 4)pre-release.."
+      ./Exiled.Installer-Linux -p /mnt/server/ --pre-releases >/dev/null
+
+    elif [[ "${EXILED_PRE}" == "false" ]]; then
+      echo "$(tput setaf 4)Installing latest $(tput setaf 1)EXILED $(tput setaf 4)release.."
+      ./Exiled.Installer-Linux -p /mnt/server/ --skip-version-select >/dev/null
+
+    else
+      echo "$(tput setaf 4)Installing $(tput setaf 1)EXILED$ $(tput setaf 4)version: $(tput bold)$(tput setaf 1)${EXILED_PRE}$(tput sgr0)"
+      ./Exiled.Installer-Linux -p /mnt/server/ --target-version "${EXILED_PRE}" # un-silenced in case debugging is needed
+    fi
   fi
+
 else
   echo $(tput setaf 3)"Skipping Exiled installation."$(tput sgr0)
 fi
 
 
-# Cleanup, I also silenced rm if it doesn't find the file.
+# Create Box64 wrappers for x86_64 binaries (only on ARM64 runtime)
+if [ "$ARCH" = "aarch64" ]; then
+  echo "$(tput setaf 4)Creating Box64 wrappers for x86_64 binaries...$(tput sgr0)"
+  for bin in SCPSL.x86_64 LocalAdmin; do
+    if [ -f "/mnt/server/$bin" ] && file "/mnt/server/$bin" | grep -q "x86-64"; then
+      mv "/mnt/server/$bin" "/mnt/server/$bin.bin"
+      printf '#!/bin/bash\nDIR="$(cd "$(dirname "$0")" && pwd)"\nexec box64 "$DIR/%s.bin" "$@"\n' "$bin" > "/mnt/server/$bin"
+      chmod +x "/mnt/server/$bin"
+      echo "  Wrapped $bin with Box64"
+    fi
+  done
+  if [ -f "/mnt/server/.egg/SCPDBot/scpdiscord" ] && file "/mnt/server/.egg/SCPDBot/scpdiscord" | grep -q "x86-64"; then
+    mv "/mnt/server/.egg/SCPDBot/scpdiscord" "/mnt/server/.egg/SCPDBot/scpdiscord.bin"
+    printf '#!/bin/bash\nDIR="$(cd "$(dirname "$0")" && pwd)"\nexec box64 "$DIR/scpdiscord.bin" "$@"\n' > "/mnt/server/.egg/SCPDBot/scpdiscord"
+    chmod +x "/mnt/server/.egg/SCPDBot/scpdiscord"
+    echo "  Wrapped .egg/SCPDBot/scpdiscord with Box64"
+  fi
+fi
+
+
+# Cleanup
 echo "$(tput setaf 5)Cleaning up..$(tput sgr 0)"
 rm /mnt/server/core >/dev/null 2>&1
 rm /mnt/server/Exiled.Installer-Linux >/dev/null 2>&1
