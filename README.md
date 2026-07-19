@@ -9,12 +9,23 @@
 - Support to run the [SCPDiscord](https://github.com/KarlOfDuty/SCPDiscord/) Bot alongside the plugin
 - Automatically checks if the egg is up to date and notifies you when there is an update
 - FFmpeg support (for use with audio player plugins)
+- **ARM64 support** (Oracle Ampere, Raspberry Pi 4/5, etc.) via [Box64](https://github.com/ptitSeb/box64)
 
+## Architecture Support
+| Arch | Installer | Runtime | Notes |
+|------|-----------|---------|-------|
+| amd64 | DepotDownloader-linux-x64 | Native | Standard support |
+| arm64 | DepotDownloader-linux-arm64, EXILED via Exiled.tar.gz | Box64 emulation | x86_64 binaries wrapped with Box64 wrappers at install time |
+
+## Docker Images
+- `reddishye/docker-scpsl-arm64`: `ghcr.io/reddishye/docker-scpsl:master` **(Multi-arch: amd64 + arm64)**
+- `essergaming/docker-scpsl`: `ghcr.io/essergaming/docker-scpsl:master` **(amd64)**
+- `parkeymon/exiled-scpsl-image`: `quay.io/parkeymon/exiled-scpsl-image:latest`
 
 ## Using the SCPDiscord bot
 1. Go to the startup tab in your server, then set `INSTALL SCP DISCORD?` to `true`.
 2. Under the settings tab, press "Reinstall Server" and wait until the server has finished the process. **Re-installing will *not* delete your important files.**
-1. Go to the files tab, and go to `/.egg/SCPDBot` and open `config.yml` to configure the bot.
+3. Go to the files tab, and go to `/.egg/SCPDBot` and open `config.yml` to configure the bot.
 > [!TIP]
 > **To configure the bot and plugin, read the [installation guide](https://github.com/KarlOfDuty/SCPDiscord/blob/main/docs/Installation.md).**
 
@@ -22,5 +33,7 @@
 ## Custom Docker Images
 ### Server Image
 https://github.com/EsserGaming/docker-scpsl
+### ARM64 Server Image (Box64)
+https://github.com/Reddishye/docker-scpsl
 ### Script Installation Container
 https://github.com/EsserGaming/scpsl-install-docker
