@@ -177,15 +177,17 @@ fi
 # Create Box64 wrappers for x86_64 binaries (only on ARM64 runtime)
 if [ "$ARCH" = "aarch64" ]; then
   echo "$(tput setaf 4)Creating Box64 wrappers for x86_64 binaries...$(tput sgr0)"
+  # On ARM64, all Steam depot & SCPDiscord binaries are x86_64 —
+  # no need for file(1) check (not available in install container).
   for bin in SCPSL.x86_64 LocalAdmin; do
-    if [ -f "/mnt/server/$bin" ] && file "/mnt/server/$bin" | grep -q "x86-64"; then
+    if [ -f "/mnt/server/$bin" ]; then
       mv "/mnt/server/$bin" "/mnt/server/$bin.bin"
       printf '#!/bin/bash\nDIR="$(cd "$(dirname "$0")" && pwd)"\nexec box64 "$DIR/%s.bin" "$@"\n' "$bin" > "/mnt/server/$bin"
       chmod +x "/mnt/server/$bin"
       echo "  Wrapped $bin with Box64"
     fi
   done
-  if [ -f "/mnt/server/.egg/SCPDBot/scpdiscord" ] && file "/mnt/server/.egg/SCPDBot/scpdiscord" | grep -q "x86-64"; then
+  if [ -f "/mnt/server/.egg/SCPDBot/scpdiscord" ]; then
     mv "/mnt/server/.egg/SCPDBot/scpdiscord" "/mnt/server/.egg/SCPDBot/scpdiscord.bin"
     printf '#!/bin/bash\nDIR="$(cd "$(dirname "$0")" && pwd)"\nexec box64 "$DIR/scpdiscord.bin" "$@"\n' > "/mnt/server/.egg/SCPDBot/scpdiscord"
     chmod +x "/mnt/server/.egg/SCPDBot/scpdiscord"
