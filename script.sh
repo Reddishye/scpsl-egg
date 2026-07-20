@@ -210,6 +210,12 @@ echo "Logging to $LOG_FILE (retention: $RETENTION_DAYS days)"
 # Cleanup old logs
 find "$LOG_DIR" -maxdepth 1 -type d -name "????-??-??" -mtime +"$RETENTION_DAYS" -exec rm -rf {} + 2>/dev/null
 
+# Box64 workarounds for ARM64 — disable dynarec Native Flags optimization
+# (causes corrupted args in sysconf calls on Neoverse-N1)
+ulimit -s unlimited 2>/dev/null
+ulimit -v unlimited 2>/dev/null
+export BOX64_DYNAREC_NATIVEFLAGS=0
+
 # Start SCPDiscord in background if installed
 if [ -f ".egg/SCPDBot/scpdiscord" ]; then
     ".egg/SCPDBot/scpdiscord" --config ".egg/SCPDBot/config.yml" &
