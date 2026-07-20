@@ -182,14 +182,14 @@ if [ "$ARCH" = "aarch64" ]; then
   for bin in SCPSL.x86_64 LocalAdmin; do
     if [ -f "/mnt/server/$bin" ]; then
       mv "/mnt/server/$bin" "/mnt/server/$bin.bin"
-      printf '#!/bin/bash\nDIR="$(cd "$(dirname "$0")" && pwd)"\nexec box64 "$DIR/%s.bin" "$@"\n' "$bin" > "/mnt/server/$bin"
+      printf '#!/bin/bash\nDIR="$(cd "$(dirname "$0")" && pwd)"\nexec /usr/bin/box64 "$DIR/%s.bin" "$@"\n' "$bin" > "/mnt/server/$bin"
       chmod +x "/mnt/server/$bin"
       echo "  Wrapped $bin with Box64"
     fi
   done
   if [ -f "/mnt/server/.egg/SCPDBot/scpdiscord" ]; then
     mv "/mnt/server/.egg/SCPDBot/scpdiscord" "/mnt/server/.egg/SCPDBot/scpdiscord.bin"
-    printf '#!/bin/bash\nDIR="$(cd "$(dirname "$0")" && pwd)"\nexec box64 "$DIR/scpdiscord.bin" "$@"\n' > "/mnt/server/.egg/SCPDBot/scpdiscord"
+    printf '#!/bin/bash\nDIR="$(cd "$(dirname "$0")" && pwd)"\nexec /usr/bin/box64 "$DIR/scpdiscord.bin" "$@"\n' > "/mnt/server/.egg/SCPDBot/scpdiscord"
     chmod +x "/mnt/server/.egg/SCPDBot/scpdiscord"
     echo "  Wrapped .egg/SCPDBot/scpdiscord with Box64"
   fi
