@@ -18,7 +18,7 @@
     "startup": "./start.sh {{SERVER_PORT}}",
     "config": {
         "files": "{}",
-        "startup": "{\r\n    \"done\": \"Waiting for players..\"\r\n}",
+        "startup": "{\r\n    \"done\": \"Received first heartbeat\"\r\n}",
         "logs": "{}",
         "stop": "exit"
     },
