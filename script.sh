@@ -196,6 +196,31 @@ if [ "$ARCH" = "aarch64" ]; then
 fi
 
 
+cat > /mnt/server/start.sh << 'STARTEOF'
+#!/bin/bash
+# Server start script with daily log rotation
+LOG_DIR="/mnt/server/logs"
+RETENTION_DAYS="${LOG_RETENTION_DAYS:-7}"
+DATE_DIR="$(date +%Y-%m-%d)"
+
+mkdir -p "$LOG_DIR/$DATE_DIR"
+LOG_FILE="$LOG_DIR/$DATE_DIR/server.log"
+echo "Logging to $LOG_FILE (retention: $RETENTION_DAYS days)"
+
+# Cleanup old logs
+find "$LOG_DIR" -maxdepth 1 -type d -name "????-??-??" -mtime +"$RETENTION_DAYS" -exec rm -rf {} + 2>/dev/null
+
+# Start SCPDiscord in background if installed
+if [ -f ".egg/SCPDBot/scpdiscord" ]; then
+    ".egg/SCPDBot/scpdiscord" --config ".egg/SCPDBot/config.yml" &
+fi
+
+# Start LocalAdmin with tee to both console and log file
+"./LocalAdmin" "$@" 2>&1 | tee -a "$LOG_FILE"
+exit "${PIPESTATUS[0]}"
+STARTEOF
+chmod +x /mnt/server/start.sh
+
 # Cleanup
 echo "$(tput setaf 5)Cleaning up..$(tput sgr 0)"
 rm /mnt/server/core >/dev/null 2>&1
