@@ -2,7 +2,7 @@
     "_comment": "PTERODACTYL: Update URL is used for Pelican",
     "meta": {
         "version": "PTDL_v2",
-        "update_url": "https://raw.githubusercontent.com/EsserGaming/scpsl-egg/refs/heads/master/scpsl-egg.json"
+        "update_url": "https://raw.githubusercontent.com/Reddishye/scpsl-egg/refs/heads/master/scpsl-egg.json"
     },
     "exported_at": "2026-07-09T19:16:01-05:00",
     "name": "scpsl-egg",
