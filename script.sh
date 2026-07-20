@@ -174,19 +174,9 @@ else
 fi
 
 
-# Create Box64 wrappers for x86_64 binaries (only on ARM64 runtime)
+# For ARM64: wrap SCPDiscord with box64 (daemon, not exec'd by another emulated process)
 if [ "$ARCH" = "aarch64" ]; then
-  echo "$(tput setaf 4)Creating Box64 wrappers for x86_64 binaries...$(tput sgr0)"
-  # On ARM64, all Steam depot & SCPDiscord binaries are x86_64 —
-  # no need for file(1) check (not available in install container).
-  for bin in SCPSL.x86_64 LocalAdmin; do
-    if [ -f "/mnt/server/$bin" ]; then
-      mv "/mnt/server/$bin" "/mnt/server/$bin.bin"
-      printf '#!/bin/bash\nDIR="$(cd "$(dirname "$0")" && pwd)"\nexec box64 "$DIR/%s.bin" "$@"\n' "$bin" > "/mnt/server/$bin"
-      chmod +x "/mnt/server/$bin"
-      echo "  Wrapped $bin with Box64"
-    fi
-  done
+  echo "$(tput setaf 4)Setting up Box64 SCPDiscord wrapper...$(tput sgr0)"
   if [ -f "/mnt/server/.egg/SCPDBot/scpdiscord" ]; then
     mv "/mnt/server/.egg/SCPDBot/scpdiscord" "/mnt/server/.egg/SCPDBot/scpdiscord.bin"
     printf '#!/bin/bash\nDIR="$(cd "$(dirname "$0")" && pwd)"\nexec box64 "$DIR/scpdiscord.bin" "$@"\n' > "/mnt/server/.egg/SCPDBot/scpdiscord"
@@ -221,8 +211,10 @@ if [ -f ".egg/SCPDBot/scpdiscord" ]; then
     ".egg/SCPDBot/scpdiscord" --config ".egg/SCPDBot/config.yml" &
 fi
 
-# Start LocalAdmin with tee to both console and log file
-"./LocalAdmin" "$@" 2>&1 | tee -a "$LOG_FILE"
+# Start LocalAdmin (under box64 on ARM64) with tee to both console and log file
+LAUNCH_CMD='./LocalAdmin'
+if [ "$(uname -m)" = "aarch64" ]; then LAUNCH_CMD='box64 ./LocalAdmin'; fi
+$LAUNCH_CMD "$@" 2>&1 | tee -a "$LOG_FILE"
 exit "${PIPESTATUS[0]}"
 STARTEOF
 chmod +x /mnt/server/start.sh
