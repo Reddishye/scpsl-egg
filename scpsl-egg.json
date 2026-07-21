@@ -89,6 +89,46 @@
             "user_editable": true,
             "rules": "required|integer|min:1|max:365",
             "field_type": "text"
+        },
+        {
+            "name": "Debug Mode",
+            "description": "Enable verbose debug output (SSL diag, etc.)",
+            "env_variable": "DEBUG",
+            "default_value": "false",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:5",
+            "field_type": "text"
+        },
+        {
+            "name": "Auto Update",
+            "description": "Check for SCP:SL updates on every server start via DepotDownloader",
+            "env_variable": "AUTO_UPDATE",
+            "default_value": "false",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:5",
+            "field_type": "text"
+        },
+        {
+            "name": "Max Retries",
+            "description": "Max server restart attempts on crash. 0 = unlimited (always restart)",
+            "env_variable": "MAX_RETRIES",
+            "default_value": "3",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|min:0|max:999",
+            "field_type": "text"
+        },
+        {
+            "name": "Retry Delay",
+            "description": "Seconds to wait between restart attempts",
+            "env_variable": "RETRY_DELAY",
+            "default_value": "10",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|min:1|max:300",
+            "field_type": "text"
         }
     ]
 }
