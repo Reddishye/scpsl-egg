@@ -214,11 +214,11 @@ fi
 LAUNCH_CMD='./LocalAdmin'
 if [ "$(uname -m)" = "aarch64" ]; then LAUNCH_CMD='box64 ./LocalAdmin'; fi
 if [ $# -gt 0 ]; then
-    printf '%s\n' "$1" | $LAUNCH_CMD "$1" --weak-http-security 2>&1 | tee -a "$LOG_FILE"
+    $LAUNCH_CMD "$1" --weak-http-security 2>&1 | tee -a "$LOG_FILE"
 else
     $LAUNCH_CMD --weak-http-security 2>&1 | tee -a "$LOG_FILE"
 fi
-exit "${PIPESTATUS[0]}"
+exit $?
 STARTEOF
 chmod +x /mnt/server/start.sh
 
