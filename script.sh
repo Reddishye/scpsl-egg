@@ -211,10 +211,13 @@ if [ -f ".egg/SCPDBot/scpdiscord" ]; then
     ".egg/SCPDBot/scpdiscord" --config ".egg/SCPDBot/config.yml" &
 fi
 
-# Start LocalAdmin (under box64 on ARM64) with tee to both console and log file
 LAUNCH_CMD='./LocalAdmin'
 if [ "$(uname -m)" = "aarch64" ]; then LAUNCH_CMD='box64 ./LocalAdmin'; fi
-$LAUNCH_CMD "$@" --weak-http-security 2>&1 | tee -a "$LOG_FILE"
+if [ $# -gt 0 ]; then
+    printf '%s\n' "$1" | $LAUNCH_CMD "$1" --weak-http-security 2>&1 | tee -a "$LOG_FILE"
+else
+    $LAUNCH_CMD --weak-http-security 2>&1 | tee -a "$LOG_FILE"
+fi
 exit "${PIPESTATUS[0]}"
 STARTEOF
 chmod +x /mnt/server/start.sh
