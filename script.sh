@@ -213,10 +213,12 @@ fi
 
 LAUNCH_CMD='./LocalAdmin'
 if [ "$(uname -m)" = "aarch64" ]; then LAUNCH_CMD='box64 ./LocalAdmin'; fi
+# Use script(1) to create a PTY so LocalAdmin outputs line-buffered + ANSI colors
+# (Without PTY, pipe makes stdout fully-buffered and strips color codes)
 if [ $# -gt 0 ]; then
-    $LAUNCH_CMD "$1" --weak-http-security 2>&1 | tee -a "$LOG_FILE"
+    script -qfc "$LAUNCH_CMD $1 --weak-http-security" /dev/null | tee -a "$LOG_FILE"
 else
-    $LAUNCH_CMD --weak-http-security 2>&1 | tee -a "$LOG_FILE"
+    script -qfc "$LAUNCH_CMD --weak-http-security" /dev/null | tee -a "$LOG_FILE"
 fi
 exit $?
 STARTEOF
