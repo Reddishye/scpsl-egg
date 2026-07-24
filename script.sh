@@ -205,6 +205,10 @@ find "$LOG_DIR" -maxdepth 1 -type d -name "????-??-??" -mtime +"$RETENTION_DAYS"
 ulimit -s unlimited 2>/dev/null
 ulimit -v unlimited 2>/dev/null
 export BOX64_DYNAREC_NATIVEFLAGS=0
+# STRONGMEM=1 forces x86 TSO memory model — critical for Mono/C#.
+# ARM64 weak ordering breaks Mono threading (null deref at +0x10).
+# Also disable big blocks: Mono JIT emits many small blocks.
+export BOX64_DYNAREC_STRONGMEM=1
 
 # Start SCPDiscord in background if installed
 if [ -f ".egg/SCPDBot/scpdiscord" ]; then
@@ -215,10 +219,14 @@ LAUNCH_CMD='./LocalAdmin'
 if [ "$(uname -m)" = "aarch64" ]; then LAUNCH_CMD='box64 ./LocalAdmin'; fi
 # Use script(1) to create a PTY so LocalAdmin outputs line-buffered + ANSI colors
 # (Without PTY, pipe makes stdout fully-buffered and strips color codes)
+# stdin guard: discard keystrokes during first 30s of init via timeout,
+# then forward normally. Prevents typed-ahead input from reaching game
+# process during Unity silent init phase.
+STDIN_GUARD="{ timeout ${STDIN_GUARD_TIMEOUT:-30} cat > /dev/null 2>&1 || true; cat; }"
 if [ $# -gt 0 ]; then
-    script -qfc "$LAUNCH_CMD $1 --weak-http-security" /dev/null | tee -a "$LOG_FILE"
+    eval "$STDIN_GUARD" | script -qfc "$LAUNCH_CMD $1 --weak-http-security" /dev/null | tee -a "$LOG_FILE"
 else
-    script -qfc "$LAUNCH_CMD --weak-http-security" /dev/null | tee -a "$LOG_FILE"
+    eval "$STDIN_GUARD" | script -qfc "$LAUNCH_CMD --weak-http-security" /dev/null | tee -a "$LOG_FILE"
 fi
 exit $?
 STARTEOF
