@@ -207,8 +207,10 @@ ulimit -v unlimited 2>/dev/null
 export BOX64_DYNAREC_NATIVEFLAGS=0
 # STRONGMEM=1 forces x86 TSO memory model — critical for Mono/C#.
 # ARM64 weak ordering breaks Mono threading (null deref at +0x10).
-# Also disable big blocks: Mono JIT emits many small blocks.
 export BOX64_DYNAREC_STRONGMEM=1
+# BIGBLOCKS=0: Mono JIT genera muchos bloques pequeños. Sin esto
+# box64 los fusiona y puede corromper registros (R14=0 en LocalAdmin).
+export BOX64_DYNAREC_BIGBLOCKS=0
 
 # Start SCPDiscord in background if installed
 if [ -f ".egg/SCPDBot/scpdiscord" ]; then
